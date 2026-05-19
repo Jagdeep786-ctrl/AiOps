@@ -1,0 +1,78 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: auth-deployment
+  namespace: shopping 
+spec:
+  replicas: 1
+  selector: 
+    matchLabels:
+      app: auth
+  template:
+    metadata:
+      name: auth-pod
+      labels:
+        app: auth
+    spec:
+      containers:
+      - name: auth-container
+        image: jagdeep144/auth-service:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 3002 
+        env:
+          - name: NODE_ENV
+            value: "production"
+          - name: PORT
+            value: "3002"
+          - name: DATABASE_URL
+            valueFrom:
+              secretKeyRef:
+                name: boutique-secrets
+                key: AUTH_DB_URL
+        resources:
+          requests:
+            memory: "200Mi"
+            cpu:  "200m"
+          limits:
+            memory: "300Mi"
+            cpu: "400m"
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: auth-service
+  namespace: shopping
+spec:
+  selector:
+    app: auth
+  ports:
+  - port: 3002
+    targetPort: 3002 
+    protocol: TCP 
+  type: ClusterIP  
+
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: auth-hpa
+  namespace: shopping 
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: auth-deployment
+  minReplicas: 1
+  maxReplicas: 3
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 20
+ 
+

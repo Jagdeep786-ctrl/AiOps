@@ -1,0 +1,79 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: orders-deployment
+  namespace: shopping
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: orders
+  template:
+    metadata:
+      name: orders-pod
+      labels:
+        app: orders
+    spec:
+      containers:
+      - name: orders-container
+        image: jagdeep144/orders:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 3005
+        env:
+          - name: PORT
+            value: "3005"
+          - name: NODE_ENV
+            value: "production"
+          - name: DATABASE_URL
+            valueFrom:
+              secretKeyRef:
+                name:  boutique-secrets
+                key: ORDERS_DB_URL
+          - name: PRODUCTS_SERVICE_URL
+            value: "http://product-service:3003"
+        resources:
+          requests:
+            memory: "150Mi"
+            cpu:  "200m"
+          limits:
+            memory: "300Mi"
+            cpu: "400m"
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: orders
+  namespace: shopping
+spec:
+  selector:
+    app: orders
+  ports:
+  - port: 3005
+    targetPort: 3005
+    protocol: TCP 
+  type: ClusterIP  
+
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: orders-hpa
+  namespace: shopping 
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: orders-deployment
+  minReplicas: 1
+  maxReplicas: 3
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 20
+ 
+

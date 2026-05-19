@@ -1,0 +1,77 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: products-deployment
+  namespace: shopping
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: products
+  template:
+    metadata:
+      name: products-pod
+      labels:
+        app: products
+    spec:
+      containers:
+      - name: products-container
+        image: jagdeep144/product-service:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 3003
+        env:
+          - name: PORT
+            value: "3003"
+          - name: NODE_ENV
+            value: "production"
+          - name: DATABASE_URL
+            valueFrom:
+              secretKeyRef:
+                name:  boutique-secrets
+                key: PRODUCTS_DB_URL
+        resources:
+          requests:
+            memory: "150Mi"
+            cpu:  "200m"
+          limits:
+            memory: "300Mi"
+            cpu: "400m"
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: products-service
+  namespace: shopping
+spec:
+  selector:
+    app: products
+  ports:
+  - port: 3003
+    targetPort: 3003
+    protocol: TCP 
+  type: ClusterIP  
+
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: products-hpa
+  namespace: shopping 
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: products-deployment
+  minReplicas: 1
+  maxReplicas: 3
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 20
+ 
+

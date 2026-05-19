@@ -1,0 +1,33 @@
+kubectl port-forward svc/gateway-service 3001:3001 -n shopping
+
+
+on powershelll
+Invoke-WebRequest http://localhost:3001/health
+Invoke-WebRequest http://localhost:3001/api/products/health
+Invoke-WebRequest http://localhost:3001/api/orders/health
+Invoke-WebRequest http://localhost:3001/api/users/health
+Invoke-WebRequest http://localhost:3001/api/auth/health
+
+
+
+
+
+test main api 
+
+Invoke-WebRequest http://localhost:3001/api/products
+Invoke-WebRequest http://localhost:3001/api/users
+Invoke-WebRequest http://localhost:3001/api/orders
+Invoke-WebRequest http://localhost:3001/api/auth
+
+
+
+if one fails then check kubectl logs deploy/products-deployment -n shopping
+kubectl logs deploy/orders-deployment -n shopping
+kubectl logs deploy/user-deployment -n shopping
+kubectl logs deploy/auth-deployment -n shopping
+kubectl logs deploy/gateway-deployment -n shopping
+
+
+also check endpoint
+
+kubectl get endpoints -n shopping

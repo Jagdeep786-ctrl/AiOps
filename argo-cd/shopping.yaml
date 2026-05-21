@@ -1,0 +1,20 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata: 
+  name: shopping-application
+  namespace: argocd
+spec:
+  project: argocd-project
+  source: 
+    repoURL: https://github.com/Jagdeep786-ctrl/AiOps.git
+    targetRevision: main
+    path: k8s
+  destination:
+    server:  https://kubernetes.default.svc
+    namespace: shopping
+  syncPolicy:
+    automated:
+       prune: true
+       selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

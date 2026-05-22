@@ -1,0 +1,24 @@
+kubectl create namespace argocd
+ kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+ kubectl get pods -n argocd
+  kubectl port-forward svc/argocd-server -n argocd 8080:443
+  kubectl get secret argocd-initial-admin-secret -n argocd -o jsonpath="{.data.password}" | % { [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String($_)) }
+Invoke-WebRequest -Uri "https://github.com/argoproj/argo-cd/releases/latest/download/argocd-windows-amd64.exe" -OutFile ".\argocd.exe"
+
+ .\argocd login localhost:8080 --username admin --password vo8XkAmAlug-7oed --insecure   
+
+ .\argocd.exe account get-user-info  
+
+ .\argocd cluster list
+
+kubectl apply -f declarative-approach.yaml -n argocd
+
+kubectl get applications -n argocd       #ehde ton applications pta lgdiaa
+kubectl get appproject -n argocd         #ehde ton projects pta lgde  jihde ch application deploy aa
+
+kubectl delete appproject argocd-project -n argocd    # ehde ton delete hunda project
+
+kubectl describe application master-app -n argocd       #application jehdi bnai ohnu describe kita
+
+
+kubectl delete all --all --all-namespaces
